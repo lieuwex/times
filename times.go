@@ -21,47 +21,38 @@ func Stat(name string) (Timespec, error) {
 
 	fi, err := os.Stat(name)
 	if err != nil {
-		return nil, err
+		return Timespec{}, err
 	}
+
 	return getTimespec(fi), nil
 }
 
 // Timespec provides access to file times.
-type Timespec interface {
-	ModTime() time.Time
-	AccessTime() (time time.Time, has bool)
-	ChangeTime() (time time.Time, has bool)
-	BirthTime() (time time.Time, has bool)
+type Timespec struct {
+	modTime time.Time
+
+	hasAccessTime bool
+	accessTime    time.Time
+
+	hasChangeTime bool
+	changeTime    time.Time
+
+	hasBirthTime bool
+	birthTime    time.Time
 }
 
-type atime struct {
-	v time.Time
+func (ts Timespec) ModTime() time.Time {
+	return ts.modTime
 }
 
-func (a atime) AccessTime() (time.Time, bool) { return a.v, true }
-
-type ctime struct {
-	v time.Time
+func (ts Timespec) AccessTime() (time.Time, bool) {
+	return ts.accessTime, ts.hasAccessTime
 }
 
-func (c ctime) ChangeTime() (time.Time, bool) { return c.v, true }
-
-type mtime struct {
-	v time.Time
+func (ts Timespec) ChangeTime() (time.Time, bool) {
+	return ts.changeTime, ts.hasChangeTime
 }
 
-func (m mtime) ModTime() time.Time { return m.v }
-
-type btime struct {
-	v time.Time
+func (ts Timespec) BirthTime() (time.Time, bool) {
+	return ts.birthTime, ts.hasBirthTime
 }
-
-func (b btime) BirthTime() (time.Time, bool) { return b.v, true }
-
-type noctime struct{}
-
-func (noctime) ChangeTime() (time.Time, bool) { return time.Now(), false }
-
-type nobtime struct{}
-
-func (nobtime) BirthTime() (time.Time, bool) { return time.Now(), false }

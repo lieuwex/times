@@ -19,18 +19,16 @@ const (
 	HasBirthTime  = true
 )
 
-type timespec struct {
-	atime
-	mtime
-	noctime
-	btime
-}
-
-func getTimespec(fi os.FileInfo) Timespec {
-	var t timespec
+func getTimespec(fi os.FileInfo) (t Timespec) {
 	stat := fi.Sys().(*syscall.Win32FileAttributeData)
-	t.atime.v = time.Unix(0, stat.LastAccessTime.Nanoseconds())
-	t.mtime.v = time.Unix(0, stat.LastWriteTime.Nanoseconds())
-	t.btime.v = time.Unix(0, stat.CreationTime.Nanoseconds())
+
+	t.modTime = timespecToTime(stat.Mtimespec)
+
+	t.hasAccessTime = true
+	t.accessTime = time.Unix(0, stat.LastAccessTime.Nanoseconds())
+
+	t.hasBirthTime = true
+	t.birthTime = time.Unix(0, stat.CreationTime.Nanoseconds())
+
 	return t
 }

@@ -19,22 +19,23 @@ const (
 	HasBirthTime  = true
 )
 
-type timespec struct {
-	atime
-	mtime
-	ctime
-	btime
-}
-
 func timespecToTime(ts syscall.Timespec) time.Time {
 	return time.Unix(int64(ts.Sec), int64(ts.Nsec))
 }
 
-func getTimespec(fi os.FileInfo) (t timespec) {
+func getTimespec(fi os.FileInfo) (t Timespec) {
 	stat := fi.Sys().(*syscall.Stat_t)
-	t.atime.v = timespecToTime(stat.Atimespec)
-	t.mtime.v = timespecToTime(stat.Mtimespec)
-	t.ctime.v = timespecToTime(stat.Ctimespec)
-	t.btime.v = timespecToTime(stat.Birthtimespec)
+
+	t.modTime = timespecToTime(stat.Mtimespec)
+
+	t.hasAccessTime = true
+	t.accessTime = timespecToTime(stat.Atimespec)
+
+	t.hasChangeTime = true
+	t.changeTime = timespecToTime(stat.Ctimespec)
+
+	t.hasBirthTime = true
+	t.birthTime = timespecToTime(stat.Birthtimespec)
+
 	return t
 }
