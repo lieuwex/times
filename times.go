@@ -27,30 +27,24 @@ func Stat(name string) (Timespec, error) {
 }
 
 // Timespec provides access to file times.
-// ChangeTime() panics unless HasChangeTime() is true and
-// BirthTime() panics unless HasBirthTime() is true.
 type Timespec interface {
 	ModTime() time.Time
-	AccessTime() time.Time
-	ChangeTime() time.Time
-	BirthTime() time.Time
-	HasChangeTime() bool
-	HasBirthTime() bool
+	AccessTime() (time time.Time, has bool)
+	ChangeTime() (time time.Time, has bool)
+	BirthTime() (time time.Time, has bool)
 }
 
 type atime struct {
 	v time.Time
 }
 
-func (a atime) AccessTime() time.Time { return a.v }
+func (a atime) AccessTime() (time.Time, bool) { return a.v, true }
 
 type ctime struct {
 	v time.Time
 }
 
-func (ctime) HasChangeTime() bool { return true }
-
-func (c ctime) ChangeTime() time.Time { return c.v }
+func (c ctime) ChangeTime() (time.Time, bool) { return c.v, true }
 
 type mtime struct {
 	v time.Time
@@ -62,18 +56,12 @@ type btime struct {
 	v time.Time
 }
 
-func (btime) HasBirthTime() bool { return true }
-
-func (b btime) BirthTime() time.Time { return b.v }
+func (b btime) BirthTime() (time.Time, bool) { return b.v, true }
 
 type noctime struct{}
 
-func (noctime) HasChangeTime() bool { return false }
-
-func (noctime) ChangeTime() time.Time { panic("ctime not available") }
+func (noctime) ChangeTime() (time.Time, bool) { return time.Now(), false }
 
 type nobtime struct{}
 
-func (nobtime) HasBirthTime() bool { return false }
-
-func (nobtime) BirthTime() time.Time { panic("birthtime not available") }
+func (nobtime) BirthTime() (time.Time, bool) { return time.Now(), false }
